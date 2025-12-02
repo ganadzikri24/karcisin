@@ -5,11 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Karcis.in') }}</title>
+    <!-- JUDUL TAB BROWSER (Mengambil dari .env) -->
+    <title>{{ config('app.name', 'Karcis.in') }} - Platform E-Ticketing</title>
 
-    <!-- Icons Bootstrap -->
+    <!-- FAVICON (Logo Kecil di Tab) -->
+    <!-- Pastikan file logo_karcisin.png ada di public/img -->
+    <link rel="icon" href="{{ asset('img/karcisin_logo.png') }}" type="image/png">
+
+    <!-- Fonts & Icons -->
+    <link rel="dns-prefetch" href="//fonts.bunny.net">
+    <link href="https://fonts.bunny.net/css?family=Nunito" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
+    <!-- Scripts -->
     @vite(['resources/sass/app.scss', 'resources/js/app.js'])
 </head>
 <body>
@@ -17,7 +25,7 @@
         <!-- NAVBAR -->
         <nav class="navbar navbar-expand-lg navbar-karcisin sticky-top">
             <div class="container">
-                <!-- 1. LOGO KIRI -->
+                <!-- LOGO KIRI -->
                 <a class="navbar-brand" href="{{ url('/') }}">
                     <img src="{{ asset('img/karcisin_logo_panjang.png') }}" 
                          alt="Karcis.in" 
@@ -31,7 +39,7 @@
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <!-- 2. MENU TENGAH -->
+                    <!-- MENU TENGAH -->
                     <ul class="navbar-nav mx-auto align-items-center">
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url('/') }}">
@@ -39,7 +47,6 @@
                             </a>
                         </li>
                         
-                        <!-- Menu Buat Event (Khusus Creator) -->
                         @if(Auth::check() && Auth::user()->role == 'creator')
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ route('event.create') }}">
@@ -48,11 +55,11 @@
                             </li>
                         @endif
                         
-                        <!-- FORM PENCARIAN (INI YANG BARU) -->
+                        <!-- PENCARIAN -->
                         <li class="nav-item ms-2 me-2">
                             <form action="{{ route('welcome') }}" method="GET" class="d-flex">
                                 <div class="input-group">
-                                    <input type="text" name="search" class="form-control form-control-sm border-primary" placeholder="Cari event..." aria-label="Cari event" value="{{ request('search') }}">
+                                    <input type="text" name="search" class="form-control form-control-sm border-primary" placeholder="Cari event..." value="{{ request('search') }}">
                                     <button class="btn btn-primary btn-sm" type="submit">
                                         <i class="bi bi-search"></i>
                                     </button>
@@ -65,7 +72,7 @@
                         </li>
                     </ul>
 
-                    <!-- 3. MENU KANAN (User / Guest) -->
+                    <!-- MENU KANAN -->
                     <ul class="navbar-nav">
                         @guest
                             <li class="nav-item me-2">
@@ -83,7 +90,6 @@
 
                                 <div class="dropdown-menu dropdown-menu-end shadow border-0">
                                     
-                                    <!-- KHUSUS DEVELOPER -->
                                     @if(Auth::user()->email == 'ganadzikri@gmail.com')
                                         <div class="dropdown-header text-primary fw-bold">👑 MODE DEVELOPER</div>
                                         <a class="dropdown-item" href="{{ route('developer.index') }}">
@@ -92,7 +98,6 @@
                                         <hr class="dropdown-divider">
                                     @endif
 
-                                    <!-- KHUSUS CREATOR -->
                                     @if(Auth::user()->role == 'creator')
                                         <a class="dropdown-item" href="{{ route('home') }}">
                                             <i class="bi bi-speedometer2"></i> Dashboard Creator
@@ -103,7 +108,6 @@
                                         <hr class="dropdown-divider">
                                     @endif
 
-                                    <!-- USER BIASA -->
                                     <a class="dropdown-item" href="{{ route('my.tickets') }}">
                                         <i class="bi bi-ticket-perforated"></i> Tiket Saya
                                     </a>
@@ -134,14 +138,13 @@
                 <div class="row">
                     <div class="col-md-4 mb-4">
                         <h4 class="fw-bold mb-3">Karcis.in</h4>
-                        <p class="text-white-50">Platform E-Ticketing Event, Tempat Wisata, dan Semua Acara Terlengkap & Ekonomis. Solusi digital untuk event masa kini.</p>
+                        <p class="text-white-50">Platform E-Ticketing Terlengkap & Ekonomis.</p>
                     </div>
                     <div class="col-md-4 mb-4">
                         <h5 class="fw-bold mb-3">Ikuti Kami</h5>
                         <ul class="list-unstyled text-white-50">
                             <li class="mb-2"><i class="bi bi-instagram me-2"></i> @karcis.in</li>
                             <li class="mb-2"><i class="bi bi-envelope me-2"></i> support@karcis.in</li>
-                            <li class="mb-2"><i class="bi bi-whatsapp me-2"></i> +62 813-8073-1465</li>
                         </ul>
                     </div>
                     <div class="col-md-4 mb-4">
