@@ -10,6 +10,8 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TicketApproved;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Maatwebsite\Excel\Facades\Excel; 
+use App\Exports\TicketExport;       
 
 class EventController extends Controller
 {
@@ -157,6 +159,18 @@ class EventController extends Controller
 
         return view('creator.show', compact('event', 'history'));
     }
+
+    // 16. Export Data Tiket ke Excel
+    public function exportTickets($id)
+        {
+        // Validasi: Pastikan event milik creator yang login
+        $event = Event::where('id', $id)->where('created_by', Auth::id())->firstOrFail();
+
+    // Nama File
+        $fileName = 'Data_Tiket_' . Str::slug($event->name) . '_' . date('Ymd') . '.xlsx';
+
+        return Excel::download(new TicketExport($event->id), $fileName);
+        }
 
     // ==========================================
     // AREA PEMBELI (USER)
