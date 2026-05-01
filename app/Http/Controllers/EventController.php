@@ -15,11 +15,7 @@ use App\Exports\TicketExport;
 
 class EventController extends Controller
 {
-    // ==========================================
-    // AREA CREATOR (PANITIA)
-    // ==========================================
 
-    // 1. Dashboard Creator
     public function index()
     {
         if (Auth::user()->role !== 'creator') {
@@ -29,7 +25,6 @@ class EventController extends Controller
         return view('creator.dashboard', compact('myEvents'));
     }
 
-    // 2. Form Buat Event
     public function create()
     {
         if (Auth::user()->role !== 'creator') {
@@ -38,7 +33,6 @@ class EventController extends Controller
         return view('creator.create');
     }
 
-    // 3. Simpan Event (FIXED: Status Pending & Kategori)
     public function store(Request $request)
     {
         if (Auth::user()->role !== 'creator') {
@@ -47,7 +41,7 @@ class EventController extends Controller
 
         $request->validate([
             'name' => 'required',
-            'category' => 'required', // Wajib kategori
+            'category' => 'required',
             'description' => 'required',
             'event_date' => 'required',
             'location' => 'required',
@@ -60,7 +54,7 @@ class EventController extends Controller
 
         Event::create([
             'name' => $request->name,
-            'category' => $request->category, // Simpan Kategori
+            'category' => $request->category,
             'description' => $request->description,
             'event_date' => $request->event_date,
             'location' => $request->location,
@@ -68,26 +62,22 @@ class EventController extends Controller
             'quota' => $request->quota,
             'banner' => $bannerPath,
             'created_by' => Auth::id(),
-            'status' => 'pending', // WAJIB PENDING AGAR TIDAK LANGSUNG MUNCUL
+            'status' => 'pending',
         ]);
 
         return redirect()->route('home')->with('success', 'Event berhasil diajukan! Menunggu persetujuan Developer.');
     }
 
-    // 3a. Halaman Form Edit Event
     public function edit($id)
     {
-        // Cari event dan pastikan milik user yang sedang login
         $event = Event::where('id', $id)->where('created_by', Auth::id())->firstOrFail();
         return view('creator.edit', compact('event'));
     }
 
-    // 3b. Proses Update Event
     public function update(Request $request, $id)
     {
         $event = Event::where('id', $id)->where('created_by', Auth::id())->firstOrFail();
 
-        // Validasi (Banner boleh kosong saat edit)
         $request->validate([
             'name' => 'required',
             'category' => 'required',
@@ -96,10 +86,9 @@ class EventController extends Controller
             'location' => 'required',
             'price' => 'required|numeric',
             'quota' => 'required|numeric',
-            'banner' => 'nullable|image|max:2048', // Banner opsional
+            'banner' => 'nullable|image|max:2048',
         ]);
 
-        // Update data dasar
         $event->name = $request->name;
         $event->category = $request->category;
         $event->description = $request->description;
@@ -108,51 +97,37 @@ class EventController extends Controller
         $event->price = $request->price;
         $event->quota = $request->quota;
 
-        // Cek jika ada upload banner baru
         if ($request->hasFile('banner')) {
-            // Hapus banner lama jika ada (Opsional, biar hemat storage)
-            // if ($event->banner) Storage::delete('public/' . $event->banner);
             
-            // Upload baru
             $bannerPath = $request->file('banner')->store('banners', 'public');
             $event->banner = $bannerPath;
         }
 
-        // Opsional: Kembalikan status ke pending jika diedit agar direview ulang
-        // $event->status = 'pending'; 
 
         $event->save();
 
         return redirect()->route('event.show', $id)->with('success', 'Event berhasil diperbarui!');
     }
 
-    // 3c. Proses Hapus Event
     public function destroy($id)
     {
         $event = Event::where('id', $id)->where('created_by', Auth::id())->firstOrFail();
 
-        // Hapus data terkait (Tiket & Transaksi) agar tidak error Foreign Key
-        // 1. Ambil semua transaksi ID dari event ini
         $transactionIds = \App\Models\Transaction::where('event_id', $event->id)->pluck('id');
         
-        // 2. Hapus Tiket yang terkait dengan transaksi tersebut
         Ticket::whereIn('transaction_id', $transactionIds)->delete();
 
-        // 3. Hapus Transaksi
         \App\Models\Transaction::where('event_id', $event->id)->delete();
 
-        // 4. Hapus Event
         $event->delete();
 
         return redirect()->route('home')->with('success', 'Event berhasil dihapus.');
     }
 
-    // 4. Detail Event & Manajemen
     public function show($id)
     {
         $event = Event::where('id', $id)->where('created_by', Auth::id())->firstOrFail();
         
-        // Ambil riwayat scan yang sukses untuk tabel
         $history = Ticket::whereHas('transaction', function($q) use ($id) {
             $q->where('event_id', $id);
         })->where('is_checked_in', true)->orderBy('updated_at', 'desc')->get();
@@ -160,38 +135,27 @@ class EventController extends Controller
         return view('creator.show', compact('event', 'history'));
     }
 
-    // 16. Export Data Tiket ke Excel
     public function exportTickets($id)
         {
-        // Validasi: Pastikan event milik creator yang login
         $event = Event::where('id', $id)->where('created_by', Auth::id())->firstOrFail();
 
-    // Nama File
         $fileName = 'Data_Tiket_' . Str::slug($event->name) . '_' . date('Ymd') . '.xlsx';
 
         return Excel::download(new TicketExport($event->id), $fileName);
         }
 
-    // ==========================================
-    // AREA PEMBELI (USER)
-    // ==========================================
-
-    // 5. Halaman Deskripsi Publik
     public function publicShow($id)
     {
-        // Hanya tampilkan jika SUDAH APPROVED
         $event = Event::where('id', $id)->where('status', 'approved')->firstOrFail();
         return view('event_detail', compact('event'));
     }
 
-    // 6. Halaman Checkout
     public function checkout($id)
     {
         $event = Event::where('id', $id)->where('status', 'approved')->firstOrFail();
         return view('checkout', compact('event'));
     }
 
-    // 7. Proses Bayar
     public function processTransaction(Request $request)
     {
         $request->validate([
@@ -229,7 +193,6 @@ class EventController extends Controller
         return redirect()->route('my.tickets')->with('success', 'Pembelian berhasil! Menunggu verifikasi panitia.');
     }
 
-    // 8. Halaman Tiket Saya
     public function myTickets()
     {
         $tickets = Ticket::whereHas('transaction', function($query) {
@@ -238,7 +201,6 @@ class EventController extends Controller
         return view('my_tickets', compact('tickets'));
     }
 
-    // 9. Download PDF
     public function downloadTicket($id)
     {
         $ticket = Ticket::with('transaction.event', 'transaction.user')->findOrFail($id);
@@ -248,11 +210,6 @@ class EventController extends Controller
         return $pdf->download('E-Ticket Karcisin - ' . $ticket->unique_code . '.pdf');
     }
 
-    // ==========================================
-    // AREA VALIDASI & APPROVAL (PANITIA)
-    // ==========================================
-
-    // 10. Approve Pembayaran User
     public function approveTransaction($id)
     {
         $transaction = \App\Models\Transaction::with('event', 'user')->findOrFail($id);
@@ -271,25 +228,21 @@ class EventController extends Controller
             }
         }
 
-        // Kirim Email
         try {
             $ticket = Ticket::where('transaction_id', $transaction->id)->first();
             $pdf = Pdf::loadView('pdf.ticket', compact('ticket'));
             $pdf->setOption(['isRemoteEnabled' => true]);
             Mail::to($transaction->customer_email)->send(new TicketApproved($transaction, $pdf->output()));
         } catch (\Exception $e) {
-            // Abaikan jika error email
         }
 
         return back()->with('success', 'Pembayaran diterima! Tiket diterbitkan & Email terkirim.');
     }
 
-    // 11. Scanner Per Event
     public function scanPage($id)
     {
         $event = Event::where('id', $id)->where('created_by', Auth::id())->firstOrFail();
         
-        // Data Riwayat Scan
         $history = Ticket::whereHas('transaction', function($q) use ($id) {
             $q->where('event_id', $id);
         })->where('is_checked_in', true)->orderBy('updated_at', 'desc')->get();
@@ -297,14 +250,12 @@ class EventController extends Controller
         return view('creator.scan', compact('event', 'history'));
     }
 
-    // 12. Scanner Umum (Pilih Event)
     public function scanGeneral()
     {
         $myEvents = Event::where('created_by', Auth::id())->where('status', 'approved')->get();
         return view('creator.scan_general', compact('myEvents'));
     }
 
-    // 13. API Verifikasi Tiket
     public function verifyTicket(Request $request)
     {
         $ticket = Ticket::with('transaction.event')
@@ -333,23 +284,17 @@ class EventController extends Controller
         ]);
     }
 
-    // ==========================================
-    // AREA DEVELOPER (ADMIN) - INI YANG HILANG TADI
-    // ==========================================
 
-    // 14. Dashboard Developer
     public function developerIndex()
     {
         if (Auth::user()->email !== 'ganadzikri@gmail.com') {
             return abort(403, 'Hanya Developer yang boleh masuk sini!');
         }
 
-        // Ambil event yang statusnya PENDING
         $pendingEvents = Event::where('status', 'pending')->with('creator')->get();
         return view('developer.index', compact('pendingEvents'));
     }
 
-    // 15. Aksi Approve Event
     public function developerApprove($id)
     {
         if (Auth::user()->email !== 'ganadzikri@gmail.com') {

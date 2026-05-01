@@ -11,7 +11,6 @@ class Ticket extends Model
 
     protected $guarded = ['id'];
 
-    // Relasi: Tiket ini hasil dari transaksi mana?
     public function transaction()
     {
         return $this->belongsTo(Transaction::class);

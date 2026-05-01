@@ -17,7 +17,6 @@ return new class extends Migration
             $table->integer('price');
             $table->integer('quota');
             $table->string('banner')->nullable();
-            // Relasi ke user pembuat
             $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });

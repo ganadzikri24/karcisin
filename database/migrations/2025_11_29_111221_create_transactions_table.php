@@ -17,12 +17,11 @@ return new class extends Migration
             $table->enum('status', ['pending', 'paid', 'rejected'])->default('pending');
             $table->string('payment_proof')->nullable();
             
-            // --- KOLOM BARU (Sesuai Request) ---
-            $table->string('customer_name');  // Nama Lengkap (Sesuai KTP)
-            $table->string('customer_email'); // Email Aktif
-            $table->string('customer_phone'); // No HP / WhatsApp
-            $table->string('customer_nik');   // Nomor KTP/NIK
-            $table->string('bank_name');      // Bank Pengirim
+            $table->string('customer_name');
+            $table->string('customer_email');
+            $table->string('customer_phone');
+            $table->string('customer_nik');
+            $table->string('bank_name');
             // -----------------------------------
 
             $table->timestamps();

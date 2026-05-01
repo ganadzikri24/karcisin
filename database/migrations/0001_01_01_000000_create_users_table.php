@@ -23,14 +23,12 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        // 2. Tabel Password Reset (Bawaan Wajib Laravel)
         Schema::create('password_reset_tokens', function (Blueprint $table) {
             $table->string('email')->primary();
             $table->string('token');
             $table->timestamp('created_at')->nullable();
         });
 
-        // 3. Tabel Sessions (Ini yang bikin error tadi)
         Schema::create('sessions', function (Blueprint $table) {
             $table->string('id')->primary();
             $table->foreignId('user_id')->nullable()->index();

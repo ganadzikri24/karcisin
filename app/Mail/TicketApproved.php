@@ -17,14 +17,12 @@ class TicketApproved extends Mailable
     public $transaction;
     public $pdfContent;
 
-    // Konstruktor: Menerima Data Transaksi & Isi File PDF
     public function __construct($transaction, $pdfContent)
     {
         $this->transaction = $transaction;
         $this->pdfContent = $pdfContent;
     }
 
-    // Judul Email
     public function envelope(): Envelope
     {
         return new Envelope(
@@ -32,7 +30,6 @@ class TicketApproved extends Mailable
         );
     }
 
-    // Isi Email (View HTML)
     public function content(): Content
     {
         return new Content(
@@ -40,7 +37,6 @@ class TicketApproved extends Mailable
         );
     }
 
-    // Lampiran (File PDF)
     public function attachments(): array
     {
         return [
